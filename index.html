@@ -59,6 +59,13 @@
       <h1 style="font-size: 2.5rem; margin-bottom: 30px; text-align: center;">Final Leave Payment Calculator</h1>
       <label for="basicSalary">Basic Salary:</label>
       <input type="number" id="basicSalary" placeholder="Enter basic salary" required>
+      <div id="voluntaryMPFOptIn" style="margin: 20px 0;">
+        <label>Would the employee like to make a voluntary MPF contribution?</label><br>
+        <div style="display: flex; gap: 10px; margin: 5px 0 15px;">
+          <button id="voluntaryYesBtn" type="button" class="voluntary-btn" style="flex: 1;">Yes</button>
+          <button id="voluntaryNoBtn" type="button" class="voluntary-btn" style="flex: 1;">No</button>
+        </div>
+      </div>
       <div id="paymentRows"></div>
       <button onclick="addPaymentRow()">Add Row</button>
       <button onclick="calculateFinalLeavePayment()">Calculate Final Leave Payment</button>
