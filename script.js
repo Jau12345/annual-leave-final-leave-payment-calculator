@@ -85,10 +85,49 @@ function addPaymentRow() {
     `;
     document.getElementById('paymentRows').appendChild(row);
 }
+// Voluntary MPF button logic
+const voluntaryYesBtn = document.getElementById('voluntaryYesBtn');
+const voluntaryNoBtn = document.getElementById('voluntaryNoBtn');
+let voluntaryOptIn = null; // null means no selection yet
+let voluntarySelected = false;
+
+function updateVoluntaryBtnStyles() {
+  if (!voluntarySelected) {
+    voluntaryYesBtn.classList.remove('selected-yes', 'selected-no');
+    voluntaryNoBtn.classList.remove('selected-yes', 'selected-no');
+  } else if (voluntaryOptIn === true) {
+    voluntaryYesBtn.classList.add('selected-yes');
+    voluntaryNoBtn.classList.remove('selected-no');
+    voluntaryNoBtn.classList.remove('selected-yes');
+  } else if (voluntaryOptIn === false) {
+    voluntaryNoBtn.classList.add('selected-no');
+    voluntaryYesBtn.classList.remove('selected-yes');
+    voluntaryYesBtn.classList.remove('selected-no');
+  }
+}
+voluntaryYesBtn.addEventListener('click', function() {
+  voluntaryOptIn = true;
+  voluntarySelected = true;
+  updateVoluntaryBtnStyles();
+});
+voluntaryNoBtn.addEventListener('click', function() {
+  voluntaryOptIn = false;
+  voluntarySelected = true;
+  updateVoluntaryBtnStyles();
+});
+// On load, both are blue
+voluntaryOptIn = null;
+voluntarySelected = false;
+updateVoluntaryBtnStyles();
 function calculateFinalLeavePayment() {
     const basicSalary = parseFloat(document.getElementById('basicSalary').value);
     if (isNaN(basicSalary) || basicSalary <= 0) {
         alert("Please enter a valid basic salary.");
+        return;
+    }
+    // Use voluntaryOptIn from button state
+    if (voluntaryOptIn === null) {
+        alert("Please select whether the employee would like to make a voluntary MPF contribution.");
         return;
     }
     const rows = document.querySelectorAll('#paymentRows > div');
@@ -106,30 +145,36 @@ function calculateFinalLeavePayment() {
             return;
         }
         const payment = Math.round((basicSalary * workingDays) / totalWorkingDays);
-        row.querySelector('.paymentResult').textContent = `Payment: ${payment.toLocaleString()}`;
+        row.querySelector('.paymentResult').textContent = `Payment: HKD ${payment.toLocaleString()}`;
         payments.push({ type, month, payment });
         if (type === "Garden Leave") gardenLeaveTotal += payment;
         // MPF for each month (only once per month)
         if (!mpfContributions[month]) {
+            // Mandatory: 5% of payment, capped at 1,500
+            const mandatory = Math.min(Math.round(payment * 0.05), 1500);
+            // Voluntary: 3% of basic salary if opted in, else 0
+            const voluntary = voluntaryOptIn ? Math.round(basicSalary * 0.03) : 0;
             mpfContributions[month] = {
-                mandatory: +(basicSalary * 0.0154200419).toFixed(2),
-                voluntary: Math.min(Math.round(basicSalary * 0.03), 2918)
+                mandatory,
+                voluntary
             };
         }
         paymentTableRows += `<tr>
             <td>${month} ${type}</td>
             <td>${workingDays}</td>
             <td>${totalWorkingDays}</td>
-            <td>${payment.toLocaleString()}</td>
+            <td>HKD ${payment.toLocaleString()}</td>
         </tr>`;
     });
     // MPF display
     let mpfRows = '';
     let mpfTotal = 0;
     Object.keys(mpfContributions).forEach(month => {
-        mpfRows += `<tr><td>MPF Contribution - ${month} (mandatory)</td><td>${mpfContributions[month].mandatory.toLocaleString()}</td></tr>`;
-        mpfRows += `<tr><td>MPF Contribution - ${month} (voluntary)</td><td>${mpfContributions[month].voluntary.toLocaleString()}</td></tr>`;
-        mpfTotal += mpfContributions[month].mandatory + mpfContributions[month].voluntary;
+        mpfRows += `<tr><td>MPF Contribution - ${month} (mandatory)</td><td>HKD ${mpfContributions[month].mandatory.toLocaleString()}</td></tr>`;
+        if (voluntaryOptIn) {
+            mpfRows += `<tr><td>MPF Contribution - ${month} (voluntary)</td><td>HKD ${mpfContributions[month].voluntary.toLocaleString()}</td></tr>`;
+        }
+        mpfTotal += mpfContributions[month].mandatory + (voluntaryOptIn ? mpfContributions[month].voluntary : 0);
     });
     const totalPayments = payments.reduce((sum, p) => sum + p.payment, 0);
     const finalPayment = totalPayments + mpfTotal;
@@ -139,12 +184,12 @@ function calculateFinalLeavePayment() {
             <tr><th>Type</th><th>Working Days</th><th>Total Working Days</th><th>Payment</th></tr>
             ${paymentTableRows}
         </table>
-        <p><strong>Total Garden Leave:</strong> ${gardenLeaveTotal.toLocaleString()}</p>
+        <p><strong>Total Garden Leave:</strong> HKD ${gardenLeaveTotal.toLocaleString()}</p>
         <table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;">
             <tr><th>MPF Contribution</th><th>Amount</th></tr>
             ${mpfRows}
         </table>
-        <p><strong>Final Payment:</strong> ${finalPayment.toLocaleString()}</p>
+        <p><strong>Final Payment:</strong> HKD ${finalPayment.toLocaleString()}</p>
     `;
     document.getElementById('finalLeaveResult').style.display = 'block';
 }
