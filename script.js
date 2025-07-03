@@ -173,7 +173,9 @@ function calculateFinalLeavePayment() {
         };
     });
     const totalPayments = payments.reduce((sum, p) => sum + p.payment, 0);
-    const finalPayment = totalPayments + Object.values(mpfContributions).reduce((sum, contribution) => sum + contribution.mandatory + (voluntaryOptIn ? contribution.voluntary : 0), 0);
+    // Calculate total MPF contributions
+    const totalMPF = Object.values(mpfContributions).reduce((sum, contribution) => sum + contribution.mandatory + (voluntaryOptIn ? contribution.voluntary : 0), 0);
+    const finalPayment = totalPayments - totalMPF;
     document.getElementById('finalLeaveResult').innerHTML = `
         <h3>Final Leave Payment Calculation</h3>
         <table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;">
