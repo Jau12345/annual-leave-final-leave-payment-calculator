@@ -148,17 +148,6 @@ function calculateFinalLeavePayment() {
         row.querySelector('.paymentResult').textContent = `Payment: HKD ${payment.toLocaleString()}`;
         payments.push({ type, month, payment });
         if (type === "Garden Leave") gardenLeaveTotal += payment;
-        // MPF for each month (only once per month)
-        if (!mpfContributions[month]) {
-            // Mandatory: 5% of payment, capped at 1,500
-            const mandatory = Math.min(Math.round(payment * 0.05), 1500);
-            // Voluntary: 3% of basic salary if opted in, else 0
-            const voluntary = voluntaryOptIn ? Math.round(basicSalary * 0.03) : 0;
-            mpfContributions[month] = {
-                mandatory,
-                voluntary
-            };
-        }
         paymentTableRows += `<tr>
             <td>${month} ${type}</td>
             <td>${workingDays}</td>
@@ -166,18 +155,25 @@ function calculateFinalLeavePayment() {
             <td>HKD ${payment.toLocaleString()}</td>
         </tr>`;
     });
-    // MPF display
-    let mpfRows = '';
-    let mpfTotal = 0;
-    Object.keys(mpfContributions).forEach(month => {
-        mpfRows += `<tr><td>MPF Contribution - ${month} (mandatory)</td><td>HKD ${mpfContributions[month].mandatory.toLocaleString()}</td></tr>`;
-        if (voluntaryOptIn) {
-            mpfRows += `<tr><td>MPF Contribution - ${month} (voluntary)</td><td>HKD ${mpfContributions[month].voluntary.toLocaleString()}</td></tr>`;
-        }
-        mpfTotal += mpfContributions[month].mandatory + (voluntaryOptIn ? mpfContributions[month].voluntary : 0);
+    // Aggregate payments by month for MPF calculation
+    let monthlyTotals = {};
+    payments.forEach(p => {
+        if (!monthlyTotals[p.month]) monthlyTotals[p.month] = 0;
+        monthlyTotals[p.month] += p.payment;
+    });
+    // MPF for each month (only once per month)
+    Object.keys(monthlyTotals).forEach(month => {
+        // Mandatory: 5% of total monthly payment, capped at 1,500
+        const mandatory = Math.min(Math.round(monthlyTotals[month] * 0.05), 1500);
+        // Voluntary: 3% of basic salary if opted in, else 0
+        const voluntary = voluntaryOptIn ? Math.round(basicSalary * 0.03) : 0;
+        mpfContributions[month] = {
+            mandatory,
+            voluntary
+        };
     });
     const totalPayments = payments.reduce((sum, p) => sum + p.payment, 0);
-    const finalPayment = totalPayments + mpfTotal;
+    const finalPayment = totalPayments + Object.values(mpfContributions).reduce((sum, contribution) => sum + contribution.mandatory + (voluntaryOptIn ? contribution.voluntary : 0), 0);
     document.getElementById('finalLeaveResult').innerHTML = `
         <h3>Final Leave Payment Calculation</h3>
         <table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;">
@@ -187,7 +183,10 @@ function calculateFinalLeavePayment() {
         <p><strong>Total Garden Leave:</strong> HKD ${gardenLeaveTotal.toLocaleString()}</p>
         <table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;">
             <tr><th>MPF Contribution</th><th>Amount</th></tr>
-            ${mpfRows}
+            ${Object.entries(mpfContributions).map(([month, contribution]) => `
+                <tr><td>${month} (mandatory)</td><td>HKD ${contribution.mandatory.toLocaleString()}</td></tr>
+                ${voluntaryOptIn ? `<tr><td>${month} (voluntary)</td><td>HKD ${contribution.voluntary.toLocaleString()}</td></tr>` : ''}
+            `).join('')}
         </table>
         <p><strong>Final Payment:</strong> HKD ${finalPayment.toLocaleString()}</p>
     `;
