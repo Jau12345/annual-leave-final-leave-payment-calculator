@@ -67,7 +67,7 @@ let paymentRowCount = 0;
 const months = [
     "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
 ];
-const types = ["Salary", "Garden Leave"];
+const types = ["Salary", "Garden Leave", "Non-Compete"];
 function addPaymentRow() {
     const rowId = `row${paymentRowCount++}`;
     const row = document.createElement('div');
