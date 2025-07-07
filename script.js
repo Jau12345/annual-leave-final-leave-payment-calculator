@@ -43,9 +43,8 @@ function calculateOutstandingLeave() {
     // Only carry forward used before 1 Apr is counted
     const outstandingLeave = annualLeaveEntitlement + daysUsedBeforeApr - annualLeaveTaken;
     document.getElementById('entitlementResult').textContent = annualLeaveEntitlement.toFixed(2);
+    document.getElementById('carryForwardResult').textContent = usedCarryBeforeApr ? daysUsedBeforeApr : 0;
     document.getElementById('takenResult').textContent = annualLeaveTaken;
-    document.getElementById('carryForwardResult').textContent = carryForward;
-    document.getElementById('usedBeforeResult').textContent = usedCarryBeforeApr ? daysUsedBeforeApr : 0;
     document.getElementById('outstandingResult').textContent = outstandingLeave.toFixed(2);
     setPreviousStep('result');
 }
