@@ -135,8 +135,6 @@ function calculateFinalLeavePayment() {
     let gardenLeaveTotal = 0;
     let mpfContributions = {};
     let paymentTableRows = '';
-    let salaryTotal = 0;
-    let nonCompeteTotal = 0;
     rows.forEach(row => {
         const type = row.querySelector('.paymentType').value;
         const month = row.querySelector('.paymentMonth').value;
@@ -150,8 +148,6 @@ function calculateFinalLeavePayment() {
         row.querySelector('.paymentResult').textContent = `Payment: HKD ${payment.toLocaleString()}`;
         payments.push({ type, month, payment });
         if (type === "Garden Leave") gardenLeaveTotal += payment;
-        if (type === "Salary") salaryTotal += payment;
-        if (type === "Non-Compete") nonCompeteTotal += payment;
         paymentTableRows += `<tr>
             <td>${month} ${type}</td>
             <td>${workingDays}</td>
@@ -189,9 +185,7 @@ function calculateFinalLeavePayment() {
             <tr><th>Type</th><th>Working Days</th><th>Total Working Days</th><th>Payment</th></tr>
             ${paymentTableRows}
         </table>
-        <p><strong>Total Salary:</strong> HKD ${salaryTotal.toLocaleString()}</p>
         <p><strong>Total Garden Leave:</strong> HKD ${gardenLeaveTotal.toLocaleString()}</p>
-        <p><strong>Total Non-Compete:</strong> HKD ${nonCompeteTotal.toLocaleString()}</p>
         <table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;">
             <tr><th>MPF Contribution</th><th>Amount</th></tr>
             ${Object.entries(mpfContributions).map(([month, contribution]) => `
