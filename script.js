@@ -163,8 +163,11 @@ function calculateFinalLeavePayment() {
     });
     // MPF for each month (only once per month)
     Object.keys(monthlyTotals).forEach(month => {
-        // Mandatory: 5% of total monthly payment, capped at 1,500
-        const mandatory = Math.min(Math.round(monthlyTotals[month] * 0.05), 1500);
+        // Mandatory: 5% of total monthly payment, capped at 1,500, but 0 if total < 7100
+        let mandatory = 0;
+        if (monthlyTotals[month] >= 7100) {
+            mandatory = Math.min(Math.round(monthlyTotals[month] * 0.05), 1500);
+        }
         // Voluntary: 3% of basic salary if opted in, else 0
         const voluntary = voluntaryOptIn ? Math.round(basicSalary * 0.03) : 0;
         mpfContributions[month] = {
