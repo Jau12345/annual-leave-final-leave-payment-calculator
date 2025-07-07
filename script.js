@@ -184,7 +184,7 @@ function calculateFinalLeavePayment() {
     const totalMPF = Object.values(mpfContributions).reduce((sum, contribution) => sum + contribution.mandatory + (voluntaryOptIn ? contribution.voluntary : 0), 0);
     const finalPayment = totalPayments - totalMPF;
     document.getElementById('finalLeaveResult').innerHTML = `
-        <h3>Final Payment Calculation</h3>
+        <h3>Final Leave Payment Calculation</h3>
         <table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;">
             <tr><th>Type</th><th>Working Days</th><th>Total Working Days</th><th>Payment</th></tr>
             ${paymentTableRows}
